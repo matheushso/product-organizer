@@ -1,9 +1,11 @@
 package com.product.organizer.api.controller;
 
 import java.util.List;
-import java.util.Optional;
+
+import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,33 +14,35 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.product.organizer.domain.entity.Produto;
-import com.product.organizer.infrastructure.repository.ProdutoRepository;
+import com.product.organizer.domain.service.ProdutoService;
 
 @RestController
 @RequestMapping("/produtos")
 public class ProdutoController {
 
 	@Autowired
-	private ProdutoRepository produtoRepository;
+	private ProdutoService produtoService;
 
 	@GetMapping
 	private List<Produto> listar() {
-		return produtoRepository.findAll();
+		return produtoService.listar();
 	}
 
 	@GetMapping("/{id}")
-	private Optional<Produto> buscar(@PathVariable Long id) {
-		Optional<Produto> produto = produtoRepository.findById(id);
+	private ResponseEntity<Produto> buscar(@PathVariable Long id) {
+		try {
+			Produto produto = produtoService.buscar(id);
+			return ResponseEntity.ok(produto);
 
-		return produto;
-
-		// TODO Criar service e colocar as regras de negocio la
-		// TODO Criar validação para retornar 404 quando não encontrado o id
+		} catch (EntityNotFoundException e) {
+			return ResponseEntity.notFound().build();
+		}
 	}
 
 	@PostMapping
 	private Produto salvar(@RequestBody Produto produto) {
-		return produtoRepository.save(produto);
+		return produtoService.salvar(produto);
 	}
 
+	// TODO Criar metodos Patch e Put
 }
